@@ -10,98 +10,115 @@ package milkbar;
  * @author Atencjusz
  */
 public class MilkBar {
+
     private Chief chief;
     private Customer[] customers;
     private LinkedStack<Meal> meals;
     private boolean working;
-    
-    public MilkBar(int howManyCustomers){
-        meals= new LinkedStack<Meal>();
+
+    public MilkBar(int howManyCustomers) {
+        working = false;
+        meals = new LinkedStack<Meal>();
         chief = new Chief(this);
         chief.setName("chief");
-        customers= new Customer[howManyCustomers];
+        customers = new Customer[howManyCustomers];
         for (int i = 0; i < howManyCustomers; i++) {
-            Customer tmp=new Customer(this);
-            tmp.setName("customer "+i);
-            customers[i]= tmp;
+            Customer tmp = new Customer(this);
+            tmp.setName("customer " + i);
+            customers[i] = tmp;
         }
-        
+
     }
+
     /**
      * @param args the command line arguments
+     * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
-        MilkBar bar = new MilkBar(2);
+        MilkBar bar = new MilkBar(30);
         bar.OpenBar();
-        Thread.sleep(1000);
-        bar.CloseBar();
-        Thread.sleep(1000);
-        int sold=0;
-        for (Customer cust : customers) {
-            sold+=cust.AteMeals;
-            System.out.println("Customer" + cust.getName() " ate " + cust.AteMeals +" meals");
-        }
+        Thread.sleep(10);        
+        if (bar.CloseBar())bar.WriteSummary();
         
-       System.out.println("Sold meals: " + sold );
-       
-       System.out.println("Chief produced " + chief.getNumberOfMeals() + " meals" );
+        
     }
-    
-    
-    public void OpenBar()
-    {
-        working= true;
+
+    public void OpenBar() throws InterruptedException {
+        working = true;
         chief.start();
         for (Customer customer : customers) {
             customer.start();
         }
+
     }
-    
-    public void CloseBar(){
-        working= false;
+
+    public boolean CloseBar() throws InterruptedException {
+        working = false;
         chief.interrupt();
         for (Customer customer : customers) {
             customer.interrupt();
         }
+        boolean hasProgramFinished = false;
+        while (!hasProgramFinished) {
+            int counter = 0;
+            for (Customer customer : customers) {
+                if (customer.Interrupt()) {
+                    counter++;
+                }
+            }
+            if (counter==customers.length) {
+                hasProgramFinished=true;
+            }
+        }
+        return hasProgramFinished;
     }
-    
-      public synchronized void DoMeal(Meal item) throws InterruptedException
-    {
-        waitForWorking();
+
+    public void WriteSummary() {
+
+        
+        System.out.println("================================ \n");
+        int sold = 0;
+        for (Customer cust : customers) {
+            int atenMeals = cust.GetNumberOfatenDishes();
+            sold += atenMeals;
+            System.out.println("Customer" + cust.getName() + " ate " + atenMeals + " meals \n");
+        }
+
+        System.out.println("Sold meals: " + sold+"\n");
+        int producedMeals = chief.getNumberOfMeals();
+        System.out.println("Chief produced " + producedMeals + " meals"+"\n");
+    }
+
+    public synchronized void DoMeal(Meal item) throws InterruptedException {
+        WaitForWorking();
         meals.push(item);
         notifyAll();
     }
-     public synchronized int GetMeal() throws InterruptedException
-    {
-        waitForNotEmpty();
+
+    public synchronized int GetMeal() throws InterruptedException {
+        WaitForNotEmpty();
         meals.pop();
         notifyAll();
         return 1;
     }
-    private  synchronized void waitForWorking() throws InterruptedException
-    {
-        while (!working)
-        {
+
+    private synchronized void WaitForWorking() throws InterruptedException {
+        while (!working) {
             System.out.println(Thread.currentThread().getName() + " is waiting for meal");
             wait();
         }
     }
 
-    private synchronized void waitForEmpty() throws InterruptedException
-    {
-        while (!meals.isEmpty())
-        {
-            System.out.println(Thread.currentThread().getName()+" is waiting for customers to get meal");
+    private synchronized void WaitForEmpty() throws InterruptedException {
+        while (!meals.isEmpty()) {
+            System.out.println(Thread.currentThread().getName() + " is waiting for customers to get meal");
             wait();
         }
     }
 
-    
-    private synchronized void waitForNotEmpty() throws InterruptedException
-    {
-        while(meals.isEmpty())
-        {
-            System.out.println(Thread.currentThread().getName()+" is waiting for meal");
+    private synchronized void WaitForNotEmpty() throws InterruptedException {
+        while (meals.isEmpty()) {
+            System.out.println(Thread.currentThread().getName() + " is waiting for meal");
             wait();
         }
     }
