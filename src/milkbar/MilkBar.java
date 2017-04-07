@@ -18,7 +18,7 @@ public class MilkBar {
 
     public MilkBar(int howManyCustomers) {
         working = false;
-        meals = new LinkedStack<Meal>();
+        meals = new LinkedStack<>();
         chief = new Chief(this);
         chief.setName("chief");
         customers = new Customer[howManyCustomers];
@@ -35,30 +35,28 @@ public class MilkBar {
      * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
-        MilkBar bar = new MilkBar(30);
+        MilkBar bar = new MilkBar(10);
         bar.OpenBar();
         Thread.sleep(10);        
-        if (bar.CloseBar())bar.WriteSummary();
+        bar.CloseBar();
+        if (bar.IsReadyToSummarry())bar.WriteSummary();
         
         
     }
 
     public void OpenBar() throws InterruptedException {
-        working = true;
-        chief.start();
+
         for (Customer customer : customers) {
             customer.start();
         }
-
+                
+        chief.start();
+        working = true;
     }
 
-    public boolean CloseBar() throws InterruptedException {
-        working = false;
-        chief.interrupt();
-        for (Customer customer : customers) {
-            customer.interrupt();
-        }
-        boolean hasProgramFinished = false;
+    public boolean IsReadyToSummarry(){
+    
+    boolean hasProgramFinished = false;
         while (!hasProgramFinished) {
             int counter = 0;
             for (Customer customer : customers) {
@@ -71,6 +69,16 @@ public class MilkBar {
             }
         }
         return hasProgramFinished;
+    }
+    public void CloseBar() throws InterruptedException {
+
+        
+        for (Customer customer : customers) {
+            customer.interrupt();
+        }
+        chief.interrupt();
+        working = false;
+        
     }
 
     public void WriteSummary() {
