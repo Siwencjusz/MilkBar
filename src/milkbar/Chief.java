@@ -11,8 +11,9 @@ package milkbar;
  * @author Atencjusz
  */
 public class Chief extends Thread {
-    public int numberOfMeals;
+    private int numberOfMeals;
     private MilkBar milkBar;
+    private int limit;
     public Chief(MilkBar Bar){
         milkBar=Bar;
         numberOfMeals=0;
@@ -20,20 +21,20 @@ public class Chief extends Thread {
     
     @Override
     public void run(){
-        //try{
+        try{
             while(true){
                 milkBar.DoMeal(new Meal());
                 numberOfMeals++;
             }
-        //}catch(InterruptedException exception)
-        //{
-        //    System.out.print(Thread.currentThread().getName()+" Bar is closed. I am finished my work");
-        //}
+        }catch(InterruptedException exception)
+        {
+           System.out.print(Thread.currentThread().getName()+" Bar is closed. I have finished my work");
+        }
     
     }
 
-    String getNumberOfMeals() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public int getNumberOfMeals() {
+        return numberOfMeals;
     }
     
 }

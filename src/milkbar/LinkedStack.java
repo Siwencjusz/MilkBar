@@ -10,7 +10,6 @@ package milkbar;
  *
  * @author Atencjusz
  */
-import java.util.*;
 public class LinkedStack<T> {
 
     private class Node{
